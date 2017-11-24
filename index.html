@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DFA</title>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<script src="dist/jsfsa.js"></script>
+	<script src="src/Viz.js"></script>
+	<script src="src/Viz.js"></script>
+	<link rel="stylesheet" type="text/css" href="main.css">
+</head>
+<body>
+	<pre class="links"><a href="https://github.com/creynders/jsfsa"> > https://github.com/creynders/jsfsa</a></pre>
+	<pre class="links"> <a href="index2.html">HM03</a> </pre>
+	<h3>DFA</h3>
+	<table align="center">
+		<tr>
+			<th></th>
+			<th>&delta;</th>
+			<th>a</th>
+			<th>b</th>
+		</tr>
+		<tr><td class="isInitial"></td><td class="firstState">q0</td><td>q1</td><td>q0</td></tr>
+		<tr><td class="isFinal"></td><td class="firstState">q1</td><td>q1</td><td>q2</td></tr>
+		<tr><td class="isFinal"></td><td class="firstState">q2</td><td>q0</td><td>q1</td></tr>
+		<!-- <tr><td>&harr;</td><td class="firstState">q2</td><td>q0</td><td>q1</td></tr> -->
+	</table>
+	
+	<form id="DFA_form" action="#" method="GET">
+		<input id="my_input" type="text" name="">
+		<br>
+		<input type="submit" name="" value="Go!">
+	</form>
+	<pre id="outAlphabet">&Sigma; =</pre>
+	<pre id="result"></pre>
+	<pre id="transitions"></pre>
+
+
+</body>
+<script>
+
+	q0 = new jsfsa.State('q0', {
+		transitions:{
+			'a':'q1',
+			'b':'q0'
+		},
+		isInitial : true
+	});
+	q1 = new jsfsa.State('q1', {
+		transitions:{
+			'a' : 'q1',
+			'b' : 'q2'
+		},
+		isFinal : true
+	});
+	q2 = new jsfsa.State('q2', {
+		transitions:{
+			'a' : 'q0',
+			'b' : 'q1'
+		},
+		isFinal : true
+	});
+
+	fsm = new jsfsa.Automaton()
+	.addState(q0)
+	.addState(q1)
+	.addState(q2)
+	;
+
+	$(document).ready(function (evt) {
+		var inputResult = "";
+		var alphabet = ['a','b'];
+		var transitions = "";
+
+		$("input#my_input").focus();
+		$("input#my_input").keydown(function(event) {
+			if($(this).val().length >= 1
+				&& event.which != 8
+				&& event.which != 9
+				&& event.which != 13
+				&& event.which != 16
+				&& event.which != 17
+				&& event.which != 18
+				&& event.which != 37
+				&& event.which != 38
+				&& event.which != 39
+				&& event.which != 40
+				&& event.which != 91
+				){
+				$(this).val("");
+			}
+		});
+
+		$("input#my_input").keyup(function(event){
+			if(!isInAlphabet($(this).val(), alphabet)){
+				$(this).val("");
+			}
+		});
+		
+		var temp = $("pre#outAlphabet").html()+" {";
+		for (var i = 0; i < alphabet.length; i++) {
+			(i == alphabet.length-1)?
+			temp += alphabet[i]:temp += alphabet[i]+", ";
+		}
+		temp += "}";
+		$("pre#outAlphabet").html(temp);
+		$("pre#result").html("Current State: "+fsm.getCurrentState().name);
+
+		$("form#DFA_form").submit(function( event ) {
+			var local_input = $( "input:first" ).val();
+			if(isInAlphabet(local_input,alphabet)){
+				inputResult += local_input;
+				$("pre#result").removeClass('red');
+				$("pre#result").html(inputResult);
+				$( "input:first" ).val("");
+
+				transitions += "("+fsm.getCurrentState().name+",";
+				fsm.doTransition(local_input);
+				transitions += local_input+") -> "+fsm.getCurrentState().name+"\n";
+				$("pre#transitions").html(transitions);
+
+				$("pre#result").html($("pre#result").html()+"\nCurrent State: "+fsm.getCurrentState().name);
+				if(fsm.getCurrentState().isFinal){
+					$("pre#result").addClass('green');
+				}
+				else{
+					$("pre#result").removeClass('green');
+				}
+			}
+			else{
+				$("pre#result").removeClass('green');
+				$("pre#result").addClass('red');
+				$("pre#result").html("\""+local_input+"\"\nNot a valid letter!");
+			}
+
+		});
+
+	});
+
+	function isInAlphabet(letter, alphabet){
+		for (var i = 0; i < alphabet.length; i++)
+			if(letter == alphabet[i]) return true;
+		return false;
+	}
+
+</script>
+</html>
